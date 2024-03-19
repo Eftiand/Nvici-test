@@ -8,7 +8,7 @@ public sealed class Tournament : Entity<int>
 {
     public string Name { get; private set; } = null!;
     public int? ParentId { get; private set; }
-    public Tournament? Parent { get; set; }
+    public Tournament? Parent { get; private set; }
     public List<Tournament> SubTournaments { get; private set; } = new();
     public List<Player> Players { get; private set; } = new();
 
@@ -41,9 +41,16 @@ public sealed class Tournament : Entity<int>
         return Result.Success();
     }
 
-    public void AddSubTournament(Tournament tournament)
+    public Result AddSubTournament(Tournament tournament)
     {
+        var depth = CalculateDepth();
+        if (depth >= 5)
+        {
+            return TournamentErrors.DepthTooBig();
+        }
+
         SubTournaments.Add(tournament);
+        return Result.Success();
     }
 
     public void RemovePlayer(Player player)
@@ -67,6 +74,16 @@ public sealed class Tournament : Entity<int>
 
         Name = name;
         return Result.Success();
+    }
+
+    private int CalculateDepth()
+    {
+        if (ParentId == null)
+        {
+            return 1;
+        }
+
+        return 1 + Parent!.CalculateDepth();
     }
 
 }
